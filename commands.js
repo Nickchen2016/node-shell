@@ -1,7 +1,8 @@
 /* jshint node: true, esversion: 6 */
 'use strict';
 
-var fs = require('fs');
+const fs = require('fs');
+const request = require('request');
 
 module.exports = {
     pwd: function (args, done) {
@@ -75,4 +76,13 @@ module.exports = {
             done(lines.join('\n'));
         });
     },
+    curl: function(url, done) {
+        if (url.slice(0, 7) !== 'http://') url = 'http://' + url;
+        request(url, (err, response, body) => {
+            if (err) throw err;
+            else if (response && (response.statusCode > 399)) throw new Error(response.statusCode);
+            if (body) done(body.trim());
+            else done('');
+        });
+    }
 };
