@@ -5,26 +5,27 @@ const fs = require('fs');
 const request = require('request');
 
 module.exports = {
-    pwd: function (args, done) {
+    pwd: function (stdin, args, done) {
         done(process.cwd());
     },
-    date: function (args, done) {
+    date: function (stdin, args, done) {
         done(Date());
     },
-    ls: function (args, done) {
+    ls: function (stdin, args, done) {
         fs.readdir('.', function (err, files) {
             if (err) throw err;
             done(files.join('\n'));
         });
     },
-    echo: function (args, done) {
+    echo: function (stdin, args, done) {
         if (args[0] === '$') {
             done(process.env[args.slice(1)]);
         } else {
             done(args);
         }
     },
-    cat: function (files, done) {
+    cat: function (stdin, files, done) {
+        if (stdin && !files) done(stdin);
         files = files.split(' ');
         let texts = [];
         var count = 0;
@@ -39,32 +40,42 @@ module.exports = {
             });
         });
     },
-    head: function (file, done) {
-        fs.readFile(file, 'utf8', (err, data) => {
+    head: function (stdin, file, done) {
+        if (stdin && !file) produceOutput(null, stdin);
+        else fs.readFile(file, 'utf8', produceOutput);
+        function produceOutput(err, data) {
             if (err) throw err;
             done(data.split('\n').slice(0, 5).join('\n'));
-        });
+        }
     },
-    tail: function (file, done) {
-        fs.readFile(file, 'utf8', (err, data) => {
+    tail: function (stdin, file, done) {
+        if (stdin && !file) produceOutput(null, stdin);
+        else fs.readFile(file, 'utf8', produceOutput);
+        function produceOutput(err, data) {
             if (err) throw err;
             done(data.split('\n').slice(-5).join('\n'));
-        });
+        }
     },
-    sort: function (file, done) {
-        fs.readFile(file, 'utf8', (err, data) => {
+    sort: function (stdin, file, done) {
+        if (stdin && !file) produceOutput(null, stdin);
+        else fs.readFile(file, 'utf8', produceOutput);
+        function produceOutput(err, data) {
             if (err) throw err;
             done(data.split('\n').sort().join('\n'));
-        });
+        }
     },
-    wc: function (file, done) {
-        fs.readFile(file, 'utf8', (err, data) => {
+    wc: function (stdin, file, done) {
+        if (stdin && !file) produceOutput(null, stdin);
+        else fs.readFile(file, 'utf8', produceOutput);
+        function produceOutput(err, data) {
             if (err) throw err;
             done(data.split('\n').length);
-        });
+        }
     },
-    uniq: function (file, done) {
-        fs.readFile(file, 'utf8', (err, data) => {
+    uniq: function (stdin, file, done) {
+        if (stdin && !file) produceOutput(null, stdin);
+        else fs.readFile(file, 'utf8', produceOutput);
+        function produceOutput(err, data) {
             if (err) throw err;
             const lines = data.split('\n');
             for (var i = 0; i < lines.length;i++) {
@@ -74,15 +85,17 @@ module.exports = {
                 }
             }
             done(lines.join('\n'));
-        });
+        }
     },
-    curl: function(url, done) {
+    curl: function(stdin, url, done) {
         if (url.slice(0, 7) !== 'http://') url = 'http://' + url;
-        request(url, (err, response, body) => {
+        if (stdin && !url) produceOutput(null, stdin);
+        else fs.readFile(url, 'utf8', produceOutput);
+        function produceOutput(err, response, body) {
             if (err) throw err;
             else if (response && (response.statusCode > 399)) throw new Error(response.statusCode);
             if (body) done(body.trim());
             else done('');
-        });
+        }
     }
 };
