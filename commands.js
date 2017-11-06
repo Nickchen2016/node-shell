@@ -49,5 +49,30 @@ module.exports = {
             if (err) throw err;
             done(data.split('\n').slice(-5).join('\n'));
         });
-    }
+    },
+    sort: function (file, done) {
+        fs.readFile(file, 'utf8', (err, data) => {
+            if (err) throw err;
+            done(data.split('\n').sort().join('\n'));
+        });
+    },
+    wc: function (file, done) {
+        fs.readFile(file, 'utf8', (err, data) => {
+            if (err) throw err;
+            done(data.split('\n').length);
+        });
+    },
+    uniq: function (file, done) {
+        fs.readFile(file, 'utf8', (err, data) => {
+            if (err) throw err;
+            const lines = data.split('\n');
+            for (var i = 0; i < lines.length;i++) {
+                if (lines[i] === lines[i + 1]) {
+                    lines.splice(i, 1);
+                    i--;
+                }
+            }
+            done(lines.join('\n'));
+        });
+    },
 };
