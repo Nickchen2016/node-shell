@@ -1,3 +1,4 @@
+/* jshint node: true, esversion: 6 */
 'use strict';
 
 var fs = require('fs');
@@ -16,9 +17,9 @@ module.exports = {
         fs.readdir('.', function (err, files) {
             if (err) throw err;
             files.forEach(function (file) {
-                process.stdout.write(file.toString() + "\n");
-            })
-            process.stdout.write("prompt > ");
+                process.stdout.write(file.toString() + '\n');
+            });
+            process.stdout.write('prompt > ');
         });
     },
     echo: function (args) {
@@ -29,12 +30,21 @@ module.exports = {
         }
         process.stdout.write('\nprompt > ');
     },
-    cat: function (file) {
-        fs.readFile('./' + file, (err, data) => {
-            if (err) throw err;
-            process.stdout.write(data);
+    cat: function (files) {
+        files = files.split(' ');
+        let texts = [];
+        var count = 0;
+        files.forEach((file, i) => {
+            fs.readFile(file, 'utf8', (err, data) => {
+                if (err) throw err;
+                texts[i] = data;
+                count++;
+                if (count === files.length) {
+                    process.stdout.write(texts.join(''));
+                    process.stdout.write('\nprompt > ');
+                }
+            });
         });
-        process.stdout.write('\nprompt > ');
     },
     head: function (file) {
         fs.readFile(file, 'utf8', (err, data) => {
